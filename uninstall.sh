@@ -57,6 +57,7 @@ remove_block "$HOME/.config/hypr/input.lua" touchpad
 remove_block "$HOME/.config/hypr/autostart.lua" keyboard
 remove_block "$HOME/.bashrc" bash-head
 remove_block "$HOME/.bashrc" bash-tail
+remove_block "$HOME/.claude/CLAUDE.md" authorship
 
 log "Удаляю установленные файлы"
 remove_file "$HOME/.local/bin/hypr-sync-kb-layout"
@@ -67,6 +68,47 @@ remove_file "$HOME/.config/omarchy-ru"
 # Меню без генератора всё равно нечем пересобрать: без этого файла Omarchy
 # просто вернётся к своим английским подписям.
 remove_file "$HOME/.config/omarchy/extensions/omarchy-menu.jsonc"
+remove_file "$HOME/.claude/statusline.sh"
+
+log "Убираю statusLine из настроек Claude Code"
+claude_settings=$HOME/.claude/settings.json
+if [[ ! -f $claude_settings ]]; then
+  ok "$(short "$claude_settings") — нет"
+elif ((DRY_RUN)); then
+  printf '  %s(dry-run)%s убрал бы statusLine из %s\n' \
+    "$C_DIM" "$C_OFF" "$(short "$claude_settings")"
+else
+  grep -q '"statusLine"' "$claude_settings" && backup "$claude_settings"
+  removed=$(python3 - "$claude_settings" <<'PY'
+import json, sys
+
+path = sys.argv[1]
+with open(path, encoding="utf-8") as handle:
+    try:
+        settings = json.load(handle)
+    except json.JSONDecodeError:
+        sys.exit("settings.json не разбирается как JSON — правь руками")
+
+dropped = [key for key in ("statusLine", "hideVimModeIndicator") if key in settings]
+if not dropped:
+    print("no")
+    raise SystemExit
+
+for key in dropped:
+    del settings[key]
+
+with open(path, "w", encoding="utf-8") as handle:
+    json.dump(settings, handle, indent=2, ensure_ascii=False)
+    handle.write("\n")
+print("yes")
+PY
+  )
+  if [[ $removed == yes ]]; then
+    ok "$(short "$claude_settings") — statusLine убран"
+  else
+    ok "$(short "$claude_settings") — statusLine не задан"
+  fi
+fi
 
 log "Возвращаю git к пейджеру по умолчанию"
 for key in core.pager interactive.diffFilter delta.navigate delta.line-numbers delta.hyperlinks; do

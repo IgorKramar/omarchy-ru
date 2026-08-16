@@ -29,6 +29,7 @@ cd ~/Projects/omarchy-ru
 | `git` | Включает delta как пейджер диффов |
 | `terminal` | Делает Ghostty терминалом по умолчанию |
 | `theme` | Ставит тему, фон и шрифт из `files/theme.env` |
+| `claude` | Статусная строка Claude Code и глобальное правило об авторстве |
 
 ```bash
 ./install.sh --list             # список модулей
@@ -127,6 +128,12 @@ RU_FONT=JetBrainsMono Nerd Font
 Нестоковая тема ставится через `omarchy theme install "$RU_THEME_REPO"`, если
 её каталога на машине нет. Пустое значение = «не трогать»: например, пустой
 `RU_BACKGROUND` оставит тот фон, который Omarchy выберет сама.
+
+**Claude Code.** Модуль `claude` кладёт двухстрочную статусную строку
+(`files/claude/statusline.sh`) и правило `files/claude/authorship.md` в
+`~/.claude/CLAUDE.md`, а в `~/.claude/settings.json` дописывает `statusLine`
+json-мерджем, не трогая остальные ключи. Цвета строка берёт из палитры
+терминала, поэтому следует текущей теме Omarchy без перенастройки.
 
 **Шелл-окружение.** Логика лежит в `files/bash/head.sh` и `files/bash/tail.sh`,
 которые ставятся в `~/.config/omarchy-ru/bash/`. В самом `~/.bashrc` остаются

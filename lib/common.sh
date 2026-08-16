@@ -60,7 +60,16 @@ install_file() {
 comment_prefix() {
   case $1 in
   *.lua) printf -- '--' ;;
+  *.md) printf '<!--' ;;
   *) printf '#' ;;
+  esac
+}
+
+# У markdown комментарий парный, поэтому маркер нужно ещё и закрыть.
+comment_suffix() {
+  case $1 in
+  *.md) printf -- ' -->' ;;
+  *) printf '' ;;
   esac
 }
 
@@ -72,10 +81,11 @@ comment_prefix() {
 # на месте. Так один и тот же install.sh можно гонять сколько угодно раз.
 ensure_block() {
   local file=$1 marker=$2 position=${3:-tail}
-  local hash
+  local hash tail
   hash=$(comment_prefix "$file")
-  local begin="$hash >>> omarchy-ru:$marker >>>"
-  local end="$hash <<< omarchy-ru:$marker <<<"
+  tail=$(comment_suffix "$file")
+  local begin="$hash >>> omarchy-ru:$marker >>>$tail"
+  local end="$hash <<< omarchy-ru:$marker <<<$tail"
   local body current tmp
   body=$(cat)
 
@@ -132,10 +142,11 @@ ensure_block() {
 # иначе цикл «поставил / снял» копил бы в чужом конфиге пустые строки.
 remove_block() {
   local file=$1 marker=$2
-  local hash
+  local hash tail
   hash=$(comment_prefix "$file")
-  local begin="$hash >>> omarchy-ru:$marker >>>"
-  local end="$hash <<< omarchy-ru:$marker <<<"
+  tail=$(comment_suffix "$file")
+  local begin="$hash >>> omarchy-ru:$marker >>>$tail"
+  local end="$hash <<< omarchy-ru:$marker <<<$tail"
 
   if [[ ! -e $file ]] || ! grep -qxF -- "$begin" "$file"; then
     ok "$(short "$file") — блока «$marker» нет"
