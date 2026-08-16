@@ -69,8 +69,9 @@ remove_file "$HOME/.config/omarchy-ru"
 # просто вернётся к своим английским подписям.
 remove_file "$HOME/.config/omarchy/extensions/omarchy-menu.jsonc"
 remove_file "$HOME/.claude/statusline.sh"
+remove_file "$HOME/.claude/hooks/no-ai-attribution.sh"
 
-log "Убираю statusLine из настроек Claude Code"
+log "Убираю настройки Claude Code (statusLine, attribution, хук)"
 claude_settings=$HOME/.claude/settings.json
 if [[ ! -f $claude_settings ]]; then
   ok "$(short "$claude_settings") — нет"
@@ -78,7 +79,7 @@ elif ((DRY_RUN)); then
   printf '  %s(dry-run)%s убрал бы statusLine из %s\n' \
     "$C_DIM" "$C_OFF" "$(short "$claude_settings")"
 else
-  grep -q '"statusLine"' "$claude_settings" && backup "$claude_settings"
+  grep -qE '"(statusLine|attribution)"|no-ai-attribution' "$claude_settings" && backup "$claude_settings"
   removed=$(python3 - "$claude_settings" <<'PY'
 import json, sys
 
@@ -89,13 +90,32 @@ with open(path, encoding="utf-8") as handle:
     except json.JSONDecodeError:
         sys.exit("settings.json не разбирается как JSON — правь руками")
 
-dropped = [key for key in ("statusLine", "hideVimModeIndicator") if key in settings]
-if not dropped:
-    print("no")
-    raise SystemExit
+HOOK = "~/.claude/hooks/no-ai-attribution.sh"
 
+dropped = [key for key in ("statusLine", "hideVimModeIndicator", "attribution") if key in settings]
 for key in dropped:
     del settings[key]
+
+# Из хуков вынимаем только свою запись, чужие на том же матчере не трогаем.
+groups = settings.get("hooks", {}).get("PreToolUse", [])
+removed_hook = False
+for group in list(groups):
+    if not isinstance(group, dict):
+        continue
+    keep = [h for h in group.get("hooks", []) if not (isinstance(h, dict) and h.get("command") == HOOK)]
+    if len(keep) != len(group.get("hooks", [])):
+        removed_hook = True
+        group["hooks"] = keep
+    if not group.get("hooks"):
+        groups.remove(group)
+if not groups:
+    settings.get("hooks", {}).pop("PreToolUse", None)
+if not settings.get("hooks"):
+    settings.pop("hooks", None)
+
+if not dropped and not removed_hook:
+    print("no")
+    raise SystemExit
 
 with open(path, "w", encoding="utf-8") as handle:
     json.dump(settings, handle, indent=2, ensure_ascii=False)
@@ -104,9 +124,9 @@ print("yes")
 PY
   )
   if [[ $removed == yes ]]; then
-    ok "$(short "$claude_settings") — statusLine убран"
+    ok "$(short "$claude_settings") — настройки и хук убраны"
   else
-    ok "$(short "$claude_settings") — statusLine не задан"
+    ok "$(short "$claude_settings") — настроек проекта нет"
   fi
 fi
 

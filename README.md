@@ -29,7 +29,7 @@ cd ~/Projects/omarchy-ru
 | `git` | Включает delta как пейджер диффов |
 | `terminal` | Делает Ghostty терминалом по умолчанию |
 | `theme` | Ставит тему, фон и шрифт из `files/theme.env` |
-| `claude` | Статусная строка Claude Code и глобальное правило об авторстве |
+| `claude` | Статусная строка Claude Code, правило об авторстве и хук, который его стережёт |
 
 ```bash
 ./install.sh --list             # список модулей
@@ -130,10 +130,27 @@ RU_FONT=JetBrainsMono Nerd Font
 `RU_BACKGROUND` оставит тот фон, который Omarchy выберет сама.
 
 **Claude Code.** Модуль `claude` кладёт двухстрочную статусную строку
-(`files/claude/statusline.sh`) и правило `files/claude/authorship.md` в
-`~/.claude/CLAUDE.md`, а в `~/.claude/settings.json` дописывает `statusLine`
-json-мерджем, не трогая остальные ключи. Цвета строка берёт из палитры
-терминала, поэтому следует текущей теме Omarchy без перенастройки.
+(`files/claude/statusline.sh`); цвета она берёт из палитры терминала, поэтому
+следует текущей теме Omarchy без перенастройки.
+
+Авторство закрывается тремя слоями, потому что одного мало:
+
+1. `attribution: {commit: "", pr: ""}` в `settings.json` — штатная настройка
+   Claude Code, гасит трейлер коммита и рекламный блок в описании PR в самом
+   источнике;
+2. правило из `files/claude/authorship.md.tmpl` в `~/.claude/CLAUDE.md` —
+   покрывает то, что настройка не ловит: код, комментарии, README, changelog;
+3. `PreToolUse`-хук `files/claude/hooks/no-ai-attribution.sh` — жёсткая
+   проверка: смотрит саму команду `git commit` / `gh pr create` и запрещает
+   её, если внутри трейлер соавторства или строка о генерации.
+
+Имя автора в правиле подставляется с машины: `git config user.name`, затем
+полное имя из `/etc/passwd`, затем логин. Перебивается через
+`RU_AUTHOR="Имя Фамилия" ./install.sh claude`.
+
+Хук и `statusLine` дописываются в `settings.json` json-мерджем: чужие ключи и
+чужие хуки на том же матчере остаются нетронутыми, `uninstall.sh` вынимает
+только свою запись.
 
 **Шелл-окружение.** Логика лежит в `files/bash/head.sh` и `files/bash/tail.sh`,
 которые ставятся в `~/.config/omarchy-ru/bash/`. В самом `~/.bashrc` остаются
