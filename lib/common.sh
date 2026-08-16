@@ -35,7 +35,8 @@ run() {
 backup() {
   local file=$1
   [[ -e $file ]] || return 0
-  local copy="$file.bak.$(date +%s)"
+  local copy
+  copy="$file.bak.$(date +%s)"
   run cp -a "$file" "$copy"
   ok "бэкап: $(short "$copy")"
 }
@@ -125,6 +126,53 @@ ensure_block() {
   cat "$result" >"$file"
   rm -f "$tmp" "$result"
   ok "$(short "$file") — блок «$marker» записан"
+}
+
+# Снять блок, поставленный ensure_block, вместе с пустой строкой перед ним —
+# иначе цикл «поставил / снял» копил бы в чужом конфиге пустые строки.
+remove_block() {
+  local file=$1 marker=$2
+  local hash
+  hash=$(comment_prefix "$file")
+  local begin="$hash >>> omarchy-ru:$marker >>>"
+  local end="$hash <<< omarchy-ru:$marker <<<"
+
+  if [[ ! -e $file ]] || ! grep -qxF -- "$begin" "$file"; then
+    ok "$(short "$file") — блока «$marker» нет"
+    return 0
+  fi
+
+  if ((DRY_RUN)); then
+    printf '  %s(dry-run)%s снял бы блок «%s» из %s\n' \
+      "$C_DIM" "$C_OFF" "$marker" "$(short "$file")"
+    return 0
+  fi
+
+  backup "$file"
+  local tmp
+  tmp=$(mktemp)
+  awk -v b="$begin" -v e="$end" '
+    !f && $0 == "" { pending++; next }
+    $0 == b { f = 1; pending = 0; next }
+    $0 == e { f = 0; next }
+    f { next }
+    { while (pending-- > 0) print ""; pending = 0; print }
+    END { while (pending-- > 0) print "" }
+  ' "$file" >"$tmp"
+  cat "$tmp" >"$file"
+  rm -f "$tmp"
+  ok "$(short "$file") — блок «$marker» снят"
+}
+
+# Удалить файл, поставленный установщиком.
+remove_file() {
+  local file=$1
+  if [[ ! -e $file ]]; then
+    ok "$(short "$file") — уже нет"
+    return 0
+  fi
+  run rm -rf -- "$file"
+  ok "$(short "$file") — удалён"
 }
 
 have() { command -v "$1" >/dev/null 2>&1; }

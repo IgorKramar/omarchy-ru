@@ -15,7 +15,7 @@ source "$RU_ROOT/files/theme.env"
 
 have omarchy-theme-set || {
   warn "omarchy-theme-set не найден — пропускаю"
-  return 0 2>/dev/null || exit 0
+  return 0
 }
 
 theme_dir() { omarchy theme dir "$1" 2>/dev/null; }

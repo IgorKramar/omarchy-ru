@@ -3,11 +3,11 @@
 
 have ghostty || {
   warn "ghostty не установлен (модуль packages) — пропускаю"
-  return 0 2>/dev/null || exit 0
+  return 0
 }
 have omarchy-default-terminal || {
   warn "omarchy-default-terminal не найден — пропускаю"
-  return 0 2>/dev/null || exit 0
+  return 0
 }
 
 current=$(omarchy-default-terminal 2>/dev/null || true)

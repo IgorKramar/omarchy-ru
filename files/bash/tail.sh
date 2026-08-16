@@ -45,8 +45,11 @@ y() {
   cwd_file=$(mktemp -t "yazi-cwd.XXXXXX")
   yazi "$@" --cwd-file="$cwd_file"
   IFS= read -r -d '' cwd <"$cwd_file"
-  [[ -n $cwd && $cwd != "$PWD" ]] && builtin cd -- "$cwd"
   rm -f -- "$cwd_file"
+
+  if [[ -n $cwd && $cwd != "$PWD" ]]; then
+    builtin cd -- "$cwd" || return
+  fi
 }
 
 [[ ${BLE_VERSION-} ]] && ble-attach

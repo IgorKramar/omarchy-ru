@@ -1,0 +1,39 @@
+name: lint
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Версии инструментов
+        run: |
+          shellcheck --version
+          python3 --version
+
+      # -x разрешает shellcheck ходить по source, чтобы он видел помощники
+      # из lib/common.sh в модулях.
+      - name: shellcheck
+        run: |
+          shellcheck -x \
+            install.sh \
+            uninstall.sh \
+            lib/*.sh \
+            modules/*.sh \
+            files/bash/*.sh \
+            files/hooks/*
+
+      # Демон раскладки и генератор меню — на питоне, но без расширения .py,
+      # поэтому проверяем их явно.
+      - name: python
+        run: python3 -m py_compile files/bin/hypr-sync-kb-layout files/bin/omarchy-menu-ru
+
+      - name: Синтаксис theme.env
+        run: bash -n files/theme.env
+
+      - name: menu-ru.json — валидный JSON
+        run: python3 -c "import json,sys; json.load(open('files/omarchy/menu-ru.json'))"

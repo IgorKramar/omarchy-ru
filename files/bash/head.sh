@@ -7,4 +7,5 @@
 
 [[ $- == *i* ]] || return 0
 
+# shellcheck source=/dev/null
 [[ -r ~/.local/share/blesh/ble.sh ]] && source ~/.local/share/blesh/ble.sh --noattach

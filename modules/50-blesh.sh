@@ -6,7 +6,7 @@ BLESH_REPO=https://github.com/akinomyoga/ble.sh.git
 
 if [[ -r $BLESH_DIR/ble.sh ]] && ((!FORCE)); then
   ok "ble.sh уже установлен ($(short "$BLESH_DIR")), --force чтобы пересобрать"
-  return 0 2>/dev/null || exit 0
+  return 0
 fi
 
 # Ставим из исходников, а не из AUR: сборка кладёт всё в ~/.local и не требует

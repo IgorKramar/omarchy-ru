@@ -88,9 +88,14 @@ fi
 
 # Без этого модуль, упавший под set -e, обрывает установку молча.
 CURRENT_MODULE=""
-trap 'status=$?; [[ -n $CURRENT_MODULE ]] &&
-  printf "  %s✗%s модуль «%s» прервался (код %d)\n" "$C_ERR" "$C_OFF" "$CURRENT_MODULE" "$status" >&2
-  exit $status' ERR
+on_error() {
+  local status=$?
+  [[ -n $CURRENT_MODULE ]] &&
+    printf '  %s✗%s модуль «%s» прервался (код %d)\n' \
+      "$C_ERR" "$C_OFF" "$CURRENT_MODULE" "$status" >&2
+  exit "$status"
+}
+trap on_error ERR
 
 for file in "${to_run[@]}"; do
   CURRENT_MODULE=$(module_name "$file")

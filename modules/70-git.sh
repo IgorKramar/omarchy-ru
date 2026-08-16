@@ -3,11 +3,11 @@
 
 have git || {
   warn "git не найден — пропускаю"
-  return 0 2>/dev/null || exit 0
+  return 0
 }
 have delta || {
   warn "delta не установлена (модуль packages) — пропускаю"
-  return 0 2>/dev/null || exit 0
+  return 0
 }
 
 # git config идемпотентен сам по себе: повторный запуск перезаписывает значение

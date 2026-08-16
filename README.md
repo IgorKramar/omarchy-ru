@@ -1,5 +1,7 @@
 # omarchy-ru
 
+[![lint](https://github.com/IgorKramar/omarchy-ru/actions/workflows/lint.yml/badge.svg)](https://github.com/IgorKramar/omarchy-ru/actions/workflows/lint.yml)
+
 Разворачивает русскую Omarchy с обновлённым шелл-окружением на чистой машине —
 или догоняет уже настроенную до того же состояния.
 
@@ -19,6 +21,7 @@ cd ~/Projects/omarchy-ru
 | `omarchy` | Проверяет, что это Omarchy 4 (Quattro). На версии старее запускает `omarchy update` и проверяет снова |
 | `locale` | Собирает `ru_RU.UTF-8`, ставит системный `LANG` |
 | `keyboard` | Раскладка `us,ru` по Alt+Shift в `~/.config/hypr/input.lua` плюс демон `hypr-sync-kb-layout` |
+| `touchpad` | Естественная прокрутка: пальцами сверху вниз — листает вверх |
 | `menu` | Русские подписи меню Omarchy: генератор, таблица подписей, хук пересборки |
 | `packages` | `ghostty`, `atuin`, `yazi`, `git-delta`, `television` |
 | `blesh` | Собирает ble.sh из исходников в `~/.local` |
@@ -48,6 +51,21 @@ cd ~/Projects/omarchy-ru
 и при повторном запуске заменяются целиком, а не дублируются. Перед каждой
 правкой рядом появляется копия `<файл>.bak.<таймстамп>`. Файл, содержимое
 которого уже совпадает с эталоном, не трогается вовсе — бэкапы не плодятся.
+
+## Как снять
+
+```bash
+./uninstall.sh              # блоки, свои файлы, хук, меню, настройки git
+./uninstall.sh --packages   # плюс снести ghostty, atuin, yazi, delta, tv и ble.sh
+./uninstall.sh --locale     # плюс вернуть LANG=en_US.UTF-8
+./uninstall.sh --dry-run
+```
+
+По умолчанию снимаются только следы установщика. Тема, фон, шрифт и копии
+`*.bak.*` остаются: это выбор пользователя, а не след скрипта. Блок снимается
+вместе с пустой строкой, которую ставил `ensure_block`, поэтому цикл
+«установил → снял» возвращает чужой конфиг байт в байт — это проверяется на
+живой машине, а не на глаз.
 
 ## После установки
 
