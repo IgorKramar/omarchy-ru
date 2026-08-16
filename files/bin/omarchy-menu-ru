@@ -1,0 +1,108 @@
+#!/usr/bin/env python3
+"""Rebuild the Russian Omarchy menu from the packaged menu definition.
+
+The shell merges the user extension onto the defaults per field, but every
+entry it parses carries all fields, so a row that only sets "label" also
+blanks the icon, action and when-condition it inherited. Each translated row
+therefore has to repeat the whole packaged entry, which pins it to the Omarchy
+version it was copied from — hence this generator: run it again after an
+update and every row is copied fresh, with only the label swapped.
+
+  ~/.config/omarchy/menu-ru.json      id -> {"label": ..., "title": ...}
+  ~/.config/omarchy/menu-extra.jsonc  optional own rows, passed through as-is
+  -> ~/.config/omarchy/extensions/omarchy-menu.jsonc
+"""
+
+import json
+import os
+import re
+import sys
+
+HOME = os.path.expanduser("~")
+OMARCHY = os.environ.get("OMARCHY_PATH", "/usr/share/omarchy")
+DEFAULT_MENU = os.path.join(OMARCHY, "default/omarchy/omarchy-menu.jsonc")
+TRANSLATIONS = os.path.join(HOME, ".config/omarchy/menu-ru.json")
+EXTRA = os.path.join(HOME, ".config/omarchy/menu-extra.jsonc")
+OUTPUT = os.path.join(HOME, ".config/omarchy/extensions/omarchy-menu.jsonc")
+
+HEADER = """// СГЕНЕРИРОВАННЫЙ ФАЙЛ — правки здесь затрутся.
+// Подписи живут в ~/.config/omarchy/menu-ru.json, свои пункты — в
+// ~/.config/omarchy/menu-extra.jsonc. Пересобрать: omarchy-menu-ru
+//
+// Каждая строка — полная копия пункта из {source}
+// с заменённым label, потому что частичное переопределение обнуляет
+// остальные поля пункта.
+"""
+
+
+def load_jsonc(path):
+    """Strip comments the way the shell's stripJsonc does, then parse."""
+    with open(path, encoding="utf-8") as handle:
+        raw = handle.read()
+    stripped = re.sub(r"^\s*//[^\n]*(\n|$)", "", raw, flags=re.M)
+    stripped = re.sub(r",(\s*[}\]])", r"\1", stripped)
+    return json.loads(stripped)
+
+
+def main():
+    default_menu = load_jsonc(DEFAULT_MENU)
+    translations = {
+        key: value
+        for key, value in load_jsonc(TRANSLATIONS).items()
+        if not key.startswith("_") and isinstance(value, dict)
+    }
+
+    rows = {}
+    missing = []
+    for entry_id, translation in translations.items():
+        source = default_menu.get(entry_id)
+        if source is None:
+            missing.append(entry_id)
+            continue
+        row = dict(source)
+        for field in ("label", "title"):
+            if translation.get(field):
+                row[field] = translation[field]
+        rows[entry_id] = row
+
+    extra = {}
+    if os.path.exists(EXTRA):
+        extra = {
+            key: value
+            for key, value in load_jsonc(EXTRA).items()
+            if isinstance(value, dict)
+        }
+
+    lines = [HEADER.format(source=DEFAULT_MENU), "{"]
+    for entry_id, row in rows.items():
+        lines.append("  %s: %s," % (json.dumps(entry_id, ensure_ascii=False),
+                                    json.dumps(row, ensure_ascii=False)))
+    if extra:
+        lines.append("")
+        lines.append("  // Собственные пункты из menu-extra.jsonc")
+        for entry_id, row in extra.items():
+            lines.append("  %s: %s," % (json.dumps(entry_id, ensure_ascii=False),
+                                        json.dumps(row, ensure_ascii=False)))
+    lines.append("}")
+    output = "\n".join(lines) + "\n"
+
+    # Parse what we are about to ship: a menu the shell cannot read leaves the
+    # user with no launcher at all.
+    load_jsonc_text = re.sub(r"^\s*//[^\n]*(\n|$)", "", output, flags=re.M)
+    json.loads(re.sub(r",(\s*[}\]])", r"\1", load_jsonc_text))
+
+    os.makedirs(os.path.dirname(OUTPUT), exist_ok=True)
+    temporary = OUTPUT + ".tmp"
+    with open(temporary, "w", encoding="utf-8") as handle:
+        handle.write(output)
+    os.replace(temporary, OUTPUT)
+
+    print("%s: %d переведённых пунктов%s" % (
+        OUTPUT, len(rows), ", %d своих" % len(extra) if extra else ""))
+    if missing:
+        print("нет в упакованном меню (устарели?): %s" % ", ".join(sorted(missing)),
+              file=sys.stderr)
+
+
+if __name__ == "__main__":
+    main()
