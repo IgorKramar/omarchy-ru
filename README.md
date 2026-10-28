@@ -1,258 +1,203 @@
-```
- ██████╗ ███╗   ███╗ █████╗ ██████╗  ██████╗██╗  ██╗██╗   ██╗     ██████╗ ██╗   ██╗
-██╔═══██╗████╗ ████║██╔══██╗██╔══██╗██╔════╝██║  ██║╚██╗ ██╔╝     ██╔══██╗██║   ██║
-██║   ██║██╔████╔██║███████║██████╔╝██║     ███████║ ╚████╔╝█████╗██████╔╝██║   ██║
-██║   ██║██║╚██╔╝██║██╔══██║██╔══██╗██║     ██╔══██║  ╚██╔╝ ╚════╝██╔══██╗██║   ██║
-╚██████╔╝██║ ╚═╝ ██║██║  ██║██║  ██║╚██████╗██║  ██║   ██║        ██║  ██║╚██████╔╝
- ╚═════╝ ╚═╝     ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝   ╚═╝        ╚═╝  ╚═╝ ╚═════╝
-```
-
 <div align="center">
 
-**Русская Omarchy за один запуск.**
+# Omarchy RU
 
-Локаль, раскладка, перевод меню, Ghostty и шелл-набор поверх bash —
-одним идемпотентным установщиком, который не страшно гонять повторно.
+**English** · [Русский](README.ru.md)
 
-[![lint](https://github.com/IgorKramar/omarchy-ru/actions/workflows/lint.yml/badge.svg)](https://github.com/IgorKramar/omarchy-ru/actions/workflows/lint.yml)
-![Omarchy 4 Quattro](https://img.shields.io/badge/Omarchy-4%20Quattro-7aa2f7)
-![Arch Linux](https://img.shields.io/badge/Arch-Linux-1793d1?logo=archlinux&logoColor=white)
-![Hyprland](https://img.shields.io/badge/Hyprland-Wayland-33ccff)
-![License](https://img.shields.io/badge/license-MIT-brightgreen)
+### Russian menus. Shared keyboard layouts. A comfortable shell.
+
+[![CI](https://github.com/IgorKramar/omarchy-ru/actions/workflows/lint.yml/badge.svg)](https://github.com/IgorKramar/omarchy-ru/actions/workflows/lint.yml)
+![Bash](https://img.shields.io/badge/Bash-e0af68?style=flat-square)
+![Arch Linux](https://img.shields.io/badge/Arch_Linux-7aa2f7?style=flat-square)
+![Hyprland](https://img.shields.io/badge/Hyprland-bb9af7?style=flat-square)
+[![MIT](https://img.shields.io/badge/license-MIT-9ece6a?style=flat-square)](LICENSE)
+
+[Install](#install) · [Modules](#modules) · [Keys](#keys) · [Customize](#customize) · [Uninstall](#uninstall)
 
 </div>
 
----
+Russian locale, keyboard layout, translated menus, Ghostty and a Bash setup for **Omarchy 4**. Run the complete installer or choose individual modules. Existing configuration is updated through marked blocks with backups.
 
-## Быстрый старт
+## Install
 
 ```bash
-git clone git@github.com:IgorKramar/omarchy-ru.git ~/Projects/omarchy-ru
+git clone https://github.com/IgorKramar/omarchy-ru.git ~/Projects/omarchy-ru
 cd ~/Projects/omarchy-ru
 ./install.sh
 ```
 
-Запускается **от обычного пользователя** — `sudo` скрипт попросит сам в тех двух
-местах, где это нужно: локаль и установка пакетов. На Omarchy старее четвёртой
-сначала сам выполнит `omarchy update` и проверит версию заново.
+Run as a **regular user**, not root. The installer requests `sudo` for the operations that need it, including locale generation and package installation. It targets Linux/Arch with Omarchy; it is not a general Linux localization tool.
+
+On an Omarchy version older than 4, the initial module runs `omarchy update` and checks the version again. Review the modules and use dry-run before applying a setup that changes your desktop preferences:
 
 ```bash
-./install.sh --list             # список модулей
-./install.sh keyboard menu      # только нужные
-./install.sh --dry-run          # показать, что было бы сделано
-./install.sh --force            # пересобрать даже то, что уже стоит
-./install.sh --skip-update      # не обновлять Omarchy на старой версии
+./install.sh --list             # list modules
+./install.sh keyboard menu      # install selected modules
+./install.sh --dry-run          # preview changes
+./install.sh --force            # rebuild installed components such as ble.sh
+./install.sh --skip-update      # do not update an older Omarchy installation
 ```
 
-## Что получается
+The Omarchy compatibility check runs first even when modules are selected explicitly.
 
-| Модуль | Что делает |
-|---|---|
-| `omarchy` | Проверяет Omarchy 4 (Quattro), на версии старее — обновляет и проверяет снова |
-| `locale` | Собирает `ru_RU.UTF-8` и ставит системный `LANG` |
-| `keyboard` | Раскладка `us,ru` по Alt+Shift плюс демон синхронизации между клавиатурами |
-| `touchpad` | Естественная прокрутка: пальцами сверху вниз — листает вверх |
-| `menu` | 155 русских подписей меню Omarchy, генератор и хук пересборки |
-| `packages` | `ghostty`, `atuin`, `yazi`, `git-delta`, `television` |
-| `blesh` | Собирает ble.sh — автоподсказки и подсветку синтаксиса в bash |
-| `bash` | Подключает ble.sh, atuin, television и yazi к `~/.bashrc` |
-| `git` | Включает delta как пейджер диффов |
-| `terminal` | Делает Ghostty терминалом по умолчанию |
-| `theme` | Ставит тему, фон и шрифт из `files/theme.env` |
-| `claude` | Статусная строка Claude Code, правило об авторстве и хук-сторож |
+## Modules
 
-## Как это выглядит
+| Module | What it does |
+|:---|:---|
+| `omarchy` | Require Omarchy 4 (Quattro); update older installations and recheck |
+| `locale` | Generate `ru_RU.UTF-8` and set the system `LANG` |
+| `keyboard` | Configure `us,ru` with Alt+Shift and synchronize layouts across keyboards |
+| `touchpad` | Enable natural scrolling |
+| `menu` | Translate menu labels, generate the extension and install a rebuild hook |
+| `packages` | Install `ghostty`, `atuin`, `yazi`, `git-delta`, `television` |
+| `blesh` | Build ble.sh for Bash syntax highlighting and suggestions |
+| `bash` | Connect ble.sh, atuin, television and yazi to `~/.bashrc` |
+| `git` | Use delta as the diff pager |
+| `terminal` | Make Ghostty the default terminal |
+| `theme` | Apply the theme, background and font from `files/theme.env` |
+| `claude` | Configure the Claude Code status line, authorship rule and guard hook |
 
-Меню Omarchy по <kbd>Super</kbd> — целиком по-русски, поиск при этом остаётся
-двуязычным: строка поиска склеивается из подписи и id пункта, поэтому «тема» и
-`theme` находят одно и то же.
+## A look inside
 
-```
+The Omarchy menu opened with <kbd>Super</kbd> uses Russian labels. Search remains bilingual because the shell searches both label and item ID: «тема» and `theme` find the same item.
+
+```text
   Приложения      Оформление      Установить
   Справка         Настройки       Удалить
   Действия        О системе       Обновить
 ```
 
-Статусная строка Claude Code — цвета берутся из палитры терминала, поэтому она
-сама следует текущей теме Omarchy:
+The optional status line uses terminal palette colors, so it follows the current theme. It shows the model and effort, directory, branch and changes, PR state, context usage, cost, diff size, usage limits and elapsed time. Its layout is two rows; the exact values depend on the active session.
 
-```
-◆ Opus 5 (1M context) · max │ ~/Projects/omarchy-ru │ master ●3 │ PR #4 ✓
+## Keys
 
-███░░░░░░░ 34% из 1M │ $2.14 │ +412/-88 │ 5ч 41% · 7д 12% │ 18м
-```
+| Key | Action |
+|:---|:---|
+| <kbd>Alt</kbd> + <kbd>Shift</kbd> | Switch us ↔ ru across physical keyboards |
+| <kbd>Ctrl</kbd> + <kbd>R</kbd> | Search history with atuin |
+| <kbd>Ctrl</kbd> + <kbd>T</kbd> | television: file picker on an empty line, word completion otherwise |
+| <kbd>Alt</kbd> + <kbd>C</kbd> | Change directory with fzf, as in stock Omarchy |
+| <kbd>↑</kbd> | Regular Bash history |
+| `y` | Run yazi and change to the directory where it exits |
 
-## Горячие клавиши
+## Rerunning and backups
 
-| Клавиша | Что делает |
-|---|---|
-| <kbd>Alt</kbd> + <kbd>Shift</kbd> | Переключение us ↔ ru сразу на всех клавиатурах |
-| <kbd>Ctrl</kbd> + <kbd>R</kbd> | Поиск по истории atuin |
-| <kbd>Ctrl</kbd> + <kbd>T</kbd> | television: на пустой строке — выбор файлов, на непустой — дополнение слова |
-| <kbd>Alt</kbd> + <kbd>C</kbd> | Переход в каталог через fzf, как в стоковой Omarchy |
-| <kbd>↑</kbd> | Обычная история bash |
-| <kbd>y</kbd> | yazi с переходом в каталог, где вышел |
+Installer-owned changes in existing files live inside marked blocks:
 
-## Повторный запуск
-
-Все шаги идемпотентны. Правки в чужих файлах живут внутри маркеров:
-
-```
-# >>> omarchy-ru:<блок> >>>
+```text
+# >>> omarchy-ru:<block> >>>
 ...
-# <<< omarchy-ru:<блок> <<<
+# <<< omarchy-ru:<block> <<<
 ```
 
-Блок заменяется целиком, а не дублируется; в `.lua` и `.md` маркеры оформляются
-комментарием того же синтаксиса. Перед каждой правкой рядом появляется копия
-`<файл>.bak.<таймстамп>`, а файл, уже совпадающий с эталоном, не трогается
-вовсе — бэкапы не плодятся.
+The block is replaced rather than duplicated. Lua and Markdown use their own comment syntax. Before a changed file is written, a sibling `<file>.bak.<timestamp>` is created. Identical files are not rewritten, so reruns do not accumulate unnecessary backups.
 
-Цикл «установил → снял» возвращает чужой конфиг **байт в байт**: блок снимается
-вместе с пустой строкой, которую ставил установщик.
+The block removal also removes the separator inserted with it, preserving the surrounding configuration. This does not make every system-level operation reversible: theme choices and backups are deliberately retained.
 
-## Как снять
+## After installation
 
-```bash
-./uninstall.sh              # блоки, свои файлы, хук, меню, настройки git
-./uninstall.sh --packages   # плюс снести пакеты и ble.sh
-./uninstall.sh --locale     # плюс вернуть LANG=en_US.UTF-8
-./uninstall.sh --dry-run
-```
+1. **Log out and back in.** Hyprland, the shell supervisor and running applications need the new `LANG=ru_RU.UTF-8`. Restarting only the Omarchy shell keeps the old inherited environment.
+2. **Open a new terminal.** ble.sh, atuin and television are loaded by Bash. The first start may pause briefly while ble.sh builds its keymap cache.
 
-Тема, фон, шрифт и копии `*.bak.*` остаются намеренно: это выбор пользователя,
-а не след скрипта.
-
-## После установки
-
-- **Перелогиниться в сессию** — `LANG=ru_RU.UTF-8` подхватят Hyprland, оболочка
-  Omarchy и уже запущенные приложения. Оболочку держит супервизор, запущенный
-  Hyprland'ом со старым окружением, поэтому `omarchy restart shell` тут не помогает.
-- **Открыть новый терминал** — ble.sh, atuin и television живут в bash. Первый
-  старт молчит пару секунд: ble.sh строит кеши раскладки клавиш.
-
-## Настройка под себя
+## Customize
 
 <details>
-<summary><b>Подписи меню</b></summary>
+<summary><strong>Menu labels and updates</strong></summary>
 
-<br>
+Edit [`files/omarchy/menu-ru.json`](files/omarchy/menu-ru.json), mapping item IDs to `label` and optionally `title`, then run:
 
-Правится `files/omarchy/menu-ru.json` (id пункта → `label` и, если нужно,
-`title`), затем `./install.sh menu`. Пунктов, которых в таблице нет, перевод не
-касается — так и задумано для имён продуктов вроде Firefox.
+```bash
+./install.sh menu
+```
 
-Сгенерированный `~/.config/omarchy/extensions/omarchy-menu.jsonc` править
-бесполезно, он перезаписывается. Причина, по которой перевод вообще устроен
-генератором: оболочка сливает пользовательское меню с упакованным **по полям**
-уже нормализованных записей, а нормализация подставляет пустые строки во все
-отсутствующие поля. Запись с одним лишь `label` обнуляет пункту иконку,
-действие и условие показа, превращая действие в пустое подменю. Поэтому каждая
-переведённая строка несёт полную копию оригинала — и эти копии надо
-пересобирать после каждого обновления Omarchy. Этим занимается хук
-`post-update.d/rebuild-ru-menu`.
+Items absent from the table are left alone, including product names such as Firefox. Do not edit the generated `~/.config/omarchy/extensions/omarchy-menu.jsonc`: it is overwritten.
+
+The shell merges normalized menu records by field. A partial label-only record would overwrite missing action, icon and condition fields with empty values. The generator therefore copies complete original records and changes their labels. `post-update.d/rebuild-ru-menu` rebuilds those copies after Omarchy updates.
 
 </details>
 
 <details>
-<summary><b>Раскладка и переключатель</b></summary>
-
-<br>
+<summary><strong>Keyboard layout and switcher</strong></summary>
 
 ```bash
 RU_KB_SWITCH=grp:ctrl_shift_toggle RU_KB_SECOND_LAYOUT=de ./install.sh keyboard
 ```
 
-Модуль читает текущие `kb_layout` и `kb_options` из живого Hyprland, выкидывает
-прежний `grp:*` и добавляет свой, так что чужие опции (`compose:caps` и прочие)
-переживают установку. Без запущенного Hyprland берутся значения Omarchy по
-умолчанию.
+The module reads live Hyprland `kb_layout` and `kb_options`, replaces the previous `grp:*` option and preserves unrelated options such as `compose:caps`. Without a running Hyprland session it uses Omarchy defaults.
 
-Hyprland переключает группу xkb отдельно для каждой клавиатуры, поэтому
-Alt+Shift меняет раскладку только на той, где нажали. Демон
-`hypr-sync-kb-layout` слушает событие `activelayout` и разносит переключение на
-остальные физические клавиатуры.
+Hyprland tracks the XKB group per keyboard. `hypr-sync-kb-layout` listens for `activelayout` events and propagates changes to other physical keyboards.
 
 </details>
 
 <details>
-<summary><b>Тема, фон и шрифт</b></summary>
+<summary><strong>Theme, background and font</strong></summary>
 
-<br>
-
-Лежат в `files/theme.env`:
+Defaults live in [`files/theme.env`](files/theme.env):
 
 ```bash
 RU_THEME="tokyo-night"
-RU_THEME_REPO=""                      # git-репозиторий, если тема не стоковая
-RU_BACKGROUND="0-winding-road.jpg"    # имя файла в backgrounds/ темы
+RU_THEME_REPO=""                      # Git repository for a non-stock theme
+RU_BACKGROUND="0-winding-road.jpg"    # file in the theme's backgrounds/
 RU_FONT="JetBrainsMono Nerd Font"
 ```
 
-Любую переменную можно перебить окружением: `RU_THEME=gruvbox ./install.sh theme`.
-Нестоковая тема ставится через `omarchy theme install "$RU_THEME_REPO"`, если её
-каталога на машине нет. Пустое значение = «не трогать».
+Environment variables override the file:
+
+```bash
+RU_THEME=gruvbox ./install.sh theme
+```
+
+A non-stock theme is installed through `omarchy theme install "$RU_THEME_REPO"` if absent. An empty value means “leave unchanged”.
 
 </details>
 
 <details>
-<summary><b>Claude Code: статусная строка и авторство</b></summary>
+<summary><strong>Status line and authorship settings</strong></summary>
 
-<br>
+[`files/claude/statusline.sh`](files/claude/statusline.sh) renders the two-row status line; Git status is cached for three seconds to avoid rereading it for every update.
 
-Статусная строка (`files/claude/statusline.sh`) показывает модель с уровнем
-effort, каталог, ветку с числом изменений и состояние PR — сверху; полосу
-контекста, стоимость, диф, лимиты 5ч/7д и время сессии — снизу. `git status`
-кешируется на три секунды: скрипт дёргается на каждое сообщение ассистента.
+The `claude` module configures three layers:
 
-Авторство закрывается тремя слоями, потому что одного мало:
+1. Empty `attribution.commit` and `attribution.pr` settings disable the built-in commit trailer and PR attribution block.
+2. A rule from [`files/claude/authorship.md.tmpl`](files/claude/authorship.md.tmpl) is added to `~/.claude/CLAUDE.md`.
+3. [`files/claude/hooks/no-ai-attribution.sh`](files/claude/hooks/no-ai-attribution.sh) checks commit and PR-creation commands before execution.
 
-1. `attribution: {commit: "", pr: ""}` в `settings.json` — штатная настройка
-   Claude Code, гасит трейлер коммита и рекламный блок в описании PR в самом
-   источнике;
-2. правило из `files/claude/authorship.md.tmpl` в `~/.claude/CLAUDE.md` —
-   покрывает то, что настройка не ловит: код, комментарии, README, changelog;
-3. `PreToolUse`-хук `files/claude/hooks/no-ai-attribution.sh` — жёсткая
-   проверка: смотрит саму команду `git commit` / `gh pr create` и запрещает её,
-   если внутри трейлер соавторства или строка о генерации.
+The author name comes from `git config user.name`, then the account's full name in `/etc/passwd`, then the login name. Override it explicitly with:
 
-Имя автора подставляется с машины: `git config user.name`, затем полное имя из
-`/etc/passwd`, затем логин. Перебивается через
-`RU_AUTHOR="Имя Фамилия" ./install.sh claude`.
+```bash
+RU_AUTHOR="Your Name" ./install.sh claude
+```
 
-Хук и `statusLine` дописываются в `settings.json` json-мерджем: чужие ключи и
-чужие хуки на том же матчере остаются нетронутыми, `uninstall.sh` вынимает
-только свою запись.
+The installer merges `statusLine` and its hook into `settings.json` while retaining unrelated keys and hooks. On removal, only this project’s hook entry is selected, but `statusLine`, `hideVimModeIndicator` and `attribution` are deleted as whole settings rather than restored to their previous values. Recover previous custom values from backups if needed.
 
 </details>
 
 <details>
-<summary><b>Шелл-окружение</b></summary>
+<summary><strong>Shell environment</strong></summary>
 
-<br>
+[`files/bash/head.sh`](files/bash/head.sh) and [`files/bash/tail.sh`](files/bash/tail.sh) are installed into `~/.config/omarchy-ru/bash/`; `~/.bashrc` keeps small loader blocks.
 
-Логика лежит в `files/bash/head.sh` и `files/bash/tail.sh`, которые ставятся в
-`~/.config/omarchy-ru/bash/`. В самом `~/.bashrc` остаются только две
-строки-заглушки, так что менять окружение можно, не трогая rc.
-
-Порядок в `tail.sh` и определяет, кто выигрывает горячие клавиши: Omarchy выше
-навесил на fzf сразу `Ctrl+T`, `Ctrl+R` и `Alt+C`, television перебивает первые
-две, atuin забирает `Ctrl+R` себе.
+Loading order determines bindings: stock fzf first owns `Ctrl+T`, `Ctrl+R` and `Alt+C`; television replaces the first two; atuin finally takes `Ctrl+R`.
 
 </details>
 
-## Чего проект не делает
+## Uninstall
 
-У Omarchy нет инфраструктуры локализации: ни `qsTr()`, ни `.ts`/`.qm`, ни
-gettext. Английскими останутся подписи виджетов бара, OSD, заголовки
-уведомлений, вывод команд `omarchy` и описания горячих клавиш в
-`omarchy menu keybindings` — они зашиты в код в `/usr/share/omarchy/`, который
-перезаписывается при каждом обновлении. Перевести их можно только патчем в
-апстрим.
+```bash
+./uninstall.sh              # remove managed blocks, files, hook, menu and Git settings
+./uninstall.sh --packages   # also remove packages and ble.sh
+./uninstall.sh --locale     # also restore LANG=en_US.UTF-8
+./uninstall.sh --dry-run
+```
 
-Синхронизация истории atuin между машинами не настраивается — это
-`atuin register` / `atuin login` с вашим ключом, дело личное.
+The selected theme, background, font, atuin history and `*.bak.*` backups remain intentionally. The uninstaller unsets global `core.pager`, `interactive.diffFilter` and the configured `delta.*` options; it does not restore earlier custom values. Review backups before uninstalling if those settings were customized before installation.
 
-## Лицензия
+## Limits
 
-[MIT](LICENSE) — как и у самой [Omarchy](https://omarchy.org).
+This is **not a complete translation of Omarchy**. Bar widgets, OSD, notification titles, CLI output and the descriptions in `omarchy menu keybindings` remain in their original language. Those strings live in upstream code rather than a localization layer; changing installed files under `/usr/share/omarchy/` would be overwritten by updates.
+
+Atuin synchronization is not configured. Register or sign in separately with `atuin register` / `atuin login` if you want it.
+
+## License
+
+[MIT](LICENSE), like upstream [Omarchy](https://omarchy.org). Copyright © Igor Kramar for this project.
